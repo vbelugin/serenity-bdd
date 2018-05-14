@@ -1,0 +1,66 @@
+group 'serenity-bdd'
+defaultTasks 'clean','test','aggregate'
+
+apply plugin: 'java'
+apply plugin: "eclipse"
+apply plugin: "net.serenity-bdd.aggregator"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    project.ext {
+        serenity_version = "1.9.10"
+        junit_version = '5.2.0'
+        assertj_version = '3.9.1'
+        gradle_version = '4.7'
+    }
+
+    dependencies {
+        classpath("net.serenity-bdd:serenity-gradle-plugin:" + serenity_version)
+    }
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'net.serenity-bdd', name: 'serenity-core', version: serenity_version
+    compile group: 'net.serenity-bdd', name: 'serenity-junit', version: serenity_version
+    compile group: 'net.serenity-bdd', name: 'serenity-jbehave', version: '1.39.0'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.9'
+    compile group: 'org.assertj', name : 'assertj-core', version: assertj_version
+    compile group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '2.2.1'
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        showStandardStreams = true
+    }
+
+    reports {
+        html.enabled = true
+    }
+    systemProperties System.getProperties()
+}
+
+test.finalizedBy(aggregate)
+
+tasks.withType(Test) {
+    systemProperty 'webdriver.driver', System.getProperty('webdriver.driver', 'chrome')
+    systemProperty 'tags', System.getProperty('tags', '')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = gradle_version
+}
